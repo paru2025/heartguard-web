@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>HeartGuard Risk Assessment</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js "></script>
 </head>
 <body>
   <div class="container">
@@ -12,6 +13,10 @@
     <p>Enter your details to assess your 10-year risk of heart disease.</p>
 
     <form id="riskForm">
+      <label>Your Name:
+        <input type="text" id="userName" placeholder="Enter your name">
+      </label>
+
       <label>Age:
         <input type="number" id="age" required>
       </label>
@@ -70,6 +75,7 @@
       </label>
 
       <button type="submit">Calculate Risk</button>
+      <button type="button" id="downloadPdf" class="hidden">Download as PDF</button>
     </form>
 
     <div id="result" class="hidden">
