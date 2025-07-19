@@ -2,39 +2,73 @@ document.getElementById('riskForm').addEventListener('submit', function(e) {
   e.preventDefault();
 
   // Get input values
-  const age = parseFloat(document.getElementById('age').value);
-  const gender = document.getElementById('gender').value;
-  const race = document.getElementById('race').value;
-  const tc = parseFloat(document.getElementById('tc').value);
-  const hdl = parseFloat(document.getElementById('hdl').value);
-  const sbp = parseFloat(document.getElementById('sbp').value);
-  const bpTreatment = document.getElementById('bpTreatment').value === 'yes';
-  const smoker = document.getElementById('smoker').value === 'yes';
-  const diabetes = document.getElementById('diabetes').value === 'yes';
+  const ageInput = document.getElementById('age');
+  const genderInput = document.getElementById('gender');
+  const raceInput = document.getElementById('race');
+  const tcInput = document.getElementById('tc');
+  const hdlInput = document.getElementById('hdl');
+  const sbpInput = document.getElementById('sbp');
+  const bpTreatmentInput = document.getElementById('bpTreatment');
+  const smokerInput = document.getElementById('smoker');
+  const diabetesInput = document.getElementById('diabetes');
 
-  // Input validation
-  if (isNaN(age) || isNaN(tc) || isNaN(hdl) || isNaN(sbp)) {
-    alert("Please enter valid numeric values for all fields.");
+  // Read values
+  const age = parseFloat(ageInput.value);
+  const gender = genderInput.value;
+  const race = raceInput.value;
+  const tc = parseFloat(tcInput.value);
+  const hdl = parseFloat(hdlInput.value);
+  const sbp = parseFloat(sbpInput.value);
+  const bpTreatment = bpTreatmentInput.value === 'yes';
+  const smoker = smokerInput.value === 'yes';
+  const diabetes = diabetesInput.value === 'yes';
+
+  // Log raw values for debugging
+  console.log("Raw Inputs:", {
+    ageRaw: ageInput.value,
+    genderRaw: genderInput.value,
+    raceRaw: raceInput.value,
+    tcRaw: tcInput.value,
+    hdlRaw: hdlInput.value,
+    sbpRaw: sbpInput.value,
+    bpTreatmentRaw: bpTreatmentInput.value,
+    smokerRaw: smokerInput.value,
+    diabetesRaw: diabetesInput.value
+  });
+
+  // Validate numeric inputs
+  if (isNaN(age)) {
+    alert("Age is not a valid number.");
+    console.error("Invalid Age:", ageInput.value);
+    return;
+  }
+  if (isNaN(tc)) {
+    alert("Total Cholesterol is not a valid number.");
+    console.error("Invalid TC:", tcInput.value);
+    return;
+  }
+  if (isNaN(hdl)) {
+    alert("HDL Cholesterol is not a valid number.");
+    console.error("Invalid HDL:", hdlInput.value);
+    return;
+  }
+  if (isNaN(sbp)) {
+    alert("Systolic BP is not a valid number.");
+    console.error("Invalid SBP:", sbpInput.value);
     return;
   }
 
-  if (age <= 0 || tc <= 0 || hdl <= 0 || sbp <= 0) {
-    alert("Please enter positive values for health metrics.");
-    return;
-  }
+  // Log parsed values
+  console.log("Parsed Values:", {
+    age, gender, race, tc, hdl, sbp, bpTreatment, smoker, diabetes
+  });
 
-  // Log input values
-  console.log("Input Values:", { age, gender, race, tc, hdl, sbp, bpTreatment, smoker, diabetes });
-
-  // Calculate natural logs
+  // Natural logs
   const lnAge = Math.log(age);
   const lnAgeSq = lnAge * lnAge;
   const lnTc = Math.log(tc);
   const lnHdl = Math.log(hdl);
   const lnSbp = Math.log(sbp);
-
-  // Log log values
-  console.log("Log Values:", { lnAge, lnTc, lnHdl, lnSbp });
 
   // Coefficients based on gender and race
   let xBeta = 0;
@@ -90,18 +124,11 @@ document.getElementById('riskForm').addEventListener('submit', function(e) {
     S0_10 = 0.9665;
   }
 
-  console.log("xBeta:", xBeta);
-  console.log("S0_10:", S0_10);
-
   // Final risk calculation
   const expXBeta = Math.exp(xBeta);
   const survival = Math.pow(S0_10, expXBeta);
   const risk = (1 - survival) * 100;
   const riskPercent = Math.min(Math.max(risk, 0), 100).toFixed(1);
-
-  console.log("exp(xBeta):", expXBeta);
-  console.log("Survival:", survival);
-  console.log("Risk:", risk);
 
   // Update UI
   const resultDiv = document.getElementById('result');
@@ -131,4 +158,6 @@ document.getElementById('riskForm').addEventListener('submit', function(e) {
   riskAdviceSpan.textContent = advice;
   resultDiv.classList.remove('hidden');
   document.getElementById('downloadPdf').classList.remove('hidden');
+
+  console.log("Final Risk Score:", riskPercent + "%");
 });
