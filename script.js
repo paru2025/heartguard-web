@@ -16,8 +16,15 @@ document.getElementById('riskForm').addEventListener('submit', function(e) {
     return;
   }
 
+  // Ensure all values are positive
+  if (age <= 0 || tc <= 0 || hdl <= 0 || sbp <= 0) {
+    alert("Please enter positive values for health metrics.");
+    return;
+  }
+
+  // Natural logs
   const lnAge = Math.log(age);
-  const lnAgeSq = Math.pow(lnAge, 2);
+  const lnAgeSq = lnAge * lnAge;
   const lnTc = Math.log(tc);
   const lnHdl = Math.log(hdl);
   const lnSbp = Math.log(sbp);
@@ -25,6 +32,7 @@ document.getElementById('riskForm').addEventListener('submit', function(e) {
   let xBeta = 0;
   let S0_10 = 0.9144;
 
+  // Coefficients based on gender and race
   if (gender === 'male' && race === 'africanAmerican') {
     xBeta =
       -24.35715 +
@@ -75,9 +83,17 @@ document.getElementById('riskForm').addEventListener('submit', function(e) {
     S0_10 = 0.9665;
   }
 
+  // Final risk calculation
   const expXBeta = Math.exp(xBeta);
-  const risk = (1 - Math.pow(S0_10, expXBeta)) * 100;
+  const survival = Math.pow(S0_10, expXBeta);
+  const risk = (1 - survival) * 100;
   const riskPercent = Math.min(Math.max(risk, 0), 100).toFixed(1);
+
+  // Update UI
+  const resultDiv = document.getElementById('result');
+  const riskPercentSpan = document.getElementById('riskPercent');
+  const riskCategorySpan = document.getElementById('riskCategory');
+  const riskAdviceSpan = document.getElementById('riskAdvice');
 
   let category = '';
   let advice = '';
@@ -96,10 +112,10 @@ document.getElementById('riskForm').addEventListener('submit', function(e) {
     advice = "Consult a healthcare provider for a prevention plan.";
   }
 
-  document.getElementById('riskPercent').textContent = riskPercent;
-  document.getElementById('riskCategory').textContent = category;
-  document.getElementById('riskAdvice').textContent = advice;
-  document.getElementById('result').classList.remove('hidden');
+  riskPercentSpan.textContent = riskPercent;
+  riskCategorySpan.textContent = category;
+  riskAdviceSpan.textContent = advice;
+  resultDiv.classList.remove('hidden');
   document.getElementById('downloadPdf').classList.remove('hidden');
 });
 
