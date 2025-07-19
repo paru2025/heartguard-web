@@ -1,6 +1,7 @@
 document.getElementById('riskForm').addEventListener('submit', function(e) {
   e.preventDefault();
 
+  // Get input values
   const age = parseFloat(document.getElementById('age').value);
   const gender = document.getElementById('gender').value;
   const race = document.getElementById('race').value;
@@ -11,28 +12,34 @@ document.getElementById('riskForm').addEventListener('submit', function(e) {
   const smoker = document.getElementById('smoker').value === 'yes';
   const diabetes = document.getElementById('diabetes').value === 'yes';
 
+  // Input validation
   if (isNaN(age) || isNaN(tc) || isNaN(hdl) || isNaN(sbp)) {
     alert("Please enter valid numeric values for all fields.");
     return;
   }
 
-  // Ensure all values are positive
   if (age <= 0 || tc <= 0 || hdl <= 0 || sbp <= 0) {
     alert("Please enter positive values for health metrics.");
     return;
   }
 
-  // Natural logs
+  // Log input values
+  console.log("Input Values:", { age, gender, race, tc, hdl, sbp, bpTreatment, smoker, diabetes });
+
+  // Calculate natural logs
   const lnAge = Math.log(age);
   const lnAgeSq = lnAge * lnAge;
   const lnTc = Math.log(tc);
   const lnHdl = Math.log(hdl);
   const lnSbp = Math.log(sbp);
 
+  // Log log values
+  console.log("Log Values:", { lnAge, lnTc, lnHdl, lnSbp });
+
+  // Coefficients based on gender and race
   let xBeta = 0;
   let S0_10 = 0.9144;
 
-  // Coefficients based on gender and race
   if (gender === 'male' && race === 'africanAmerican') {
     xBeta =
       -24.35715 +
@@ -83,11 +90,18 @@ document.getElementById('riskForm').addEventListener('submit', function(e) {
     S0_10 = 0.9665;
   }
 
+  console.log("xBeta:", xBeta);
+  console.log("S0_10:", S0_10);
+
   // Final risk calculation
   const expXBeta = Math.exp(xBeta);
   const survival = Math.pow(S0_10, expXBeta);
   const risk = (1 - survival) * 100;
   const riskPercent = Math.min(Math.max(risk, 0), 100).toFixed(1);
+
+  console.log("exp(xBeta):", expXBeta);
+  console.log("Survival:", survival);
+  console.log("Risk:", risk);
 
   // Update UI
   const resultDiv = document.getElementById('result');
@@ -117,27 +131,4 @@ document.getElementById('riskForm').addEventListener('submit', function(e) {
   riskAdviceSpan.textContent = advice;
   resultDiv.classList.remove('hidden');
   document.getElementById('downloadPdf').classList.remove('hidden');
-});
-
-// PDF Export
-document.getElementById('downloadPdf').addEventListener('click', function () {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-
-  const name = document.getElementById('userName').value || 'Anonymous';
-  const riskPercent = document.getElementById('riskPercent').textContent;
-  const category = document.getElementById('riskCategory').textContent;
-  const advice = document.getElementById('riskAdvice').textContent;
-
-  doc.setFontSize(18);
-  doc.text("HeartGuard Risk Assessment", 20, 20);
-
-  doc.setFontSize(12);
-  doc.text(`Name: ${name}`, 20, 30);
-  doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 40);
-  doc.text(`10-Year ASCVD Risk: ${riskPercent}%`, 20, 50);
-  doc.text(`Risk Category: ${category}`, 20, 60);
-  doc.text(`Advice: ${advice}`, 20, 70);
-
-  doc.save(`HeartGuard_${name}_Risk_Report.pdf`);
 });
