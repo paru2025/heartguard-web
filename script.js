@@ -75,19 +75,20 @@ document.getElementById('riskForm').addEventListener('submit', function(e) {
     S0_10 = 0.9665;
   }
 
-  const risk = (1 - Math.pow(S0_10, Math.exp(xBeta))) * 100;
-  const riskPercent = Math.min(risk, 100).toFixed(1);
+  const expXBeta = Math.exp(xBeta);
+  const risk = (1 - Math.pow(S0_10, expXBeta)) * 100;
+  const riskPercent = Math.min(Math.max(risk, 0), 100).toFixed(1);
 
   let category = '';
   let advice = '';
 
-  if (riskPercent < 5) {
+  if (risk < 5) {
     category = "Low";
     advice = "You're doing great! Keep up the healthy habits.";
-  } else if (riskPercent <= 7.5) {
+  } else if (risk <= 7.5) {
     category = "Borderline";
     advice = "Talk to your doctor about lifestyle changes.";
-  } else if (riskPercent <= 20) {
+  } else if (risk <= 20) {
     category = "Intermediate";
     advice = "Consider regular check-ups and improving diet/exercise.";
   } else {
@@ -99,4 +100,28 @@ document.getElementById('riskForm').addEventListener('submit', function(e) {
   document.getElementById('riskCategory').textContent = category;
   document.getElementById('riskAdvice').textContent = advice;
   document.getElementById('result').classList.remove('hidden');
+  document.getElementById('downloadPdf').classList.remove('hidden');
+});
+
+// PDF Export
+document.getElementById('downloadPdf').addEventListener('click', function () {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const name = document.getElementById('userName').value || 'Anonymous';
+  const riskPercent = document.getElementById('riskPercent').textContent;
+  const category = document.getElementById('riskCategory').textContent;
+  const advice = document.getElementById('riskAdvice').textContent;
+
+  doc.setFontSize(18);
+  doc.text("HeartGuard Risk Assessment", 20, 20);
+
+  doc.setFontSize(12);
+  doc.text(`Name: ${name}`, 20, 30);
+  doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 40);
+  doc.text(`10-Year ASCVD Risk: ${riskPercent}%`, 20, 50);
+  doc.text(`Risk Category: ${category}`, 20, 60);
+  doc.text(`Advice: ${advice}`, 20, 70);
+
+  doc.save(`HeartGuard_${name}_Risk_Report.pdf`);
 });
